@@ -39,13 +39,13 @@ C:/Users/사용자ID 로 이동
 ### 3-2. 프로젝트 다운로드
 
 ```powershell
-git clone https://github.com/innocurveai/AI-Project.git
+git clone https://github.com/innocurveai/Castingn-AI.git
 ```
 
 - 폴더로 이동
 
 ```sh
-cd AI-Project
+cd Castingn-AI
 ```
 
 ### 3-3. 가상환경 및 패키지 설치
@@ -89,4 +89,4 @@ Cursor AI 껐다가 재실행
 
 > 모든 키는 `.env-sample` 파일에 입력하며,
 > 입력 후 파일 이름을 `.env-sample` 에서 `.env` 로 변경 필수
-> `AI-Project/` 에 위치해야 함
+> `Castingn-AI/` 에 위치해야 함
