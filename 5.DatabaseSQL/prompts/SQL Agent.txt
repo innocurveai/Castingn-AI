@@ -37,4 +37,4 @@
    - 모델 선택 컴포넌트, OpenAI 실시간 웹 검색(web_search) 온오프 체크박스, 대화 초기화 버튼을 명확히 구현하라.
 
 5. 환경 변수 로드 안전 규칙
-   - AI-Project/.env의 절대경로 기준으로 load_dotenv()를 수행하되, API Key가 누락되었을 경우 프로그램이 멈추지(Crash) 않도록 st.error를 통해 화면에 예쁘게 경고 창을 띄워라.
+   - Castingn-AI/.env의 절대경로 기준으로 load_dotenv()를 수행하되, API Key가 누락되었을 경우 프로그램이 멈추지(Crash) 않도록 st.error를 통해 화면에 예쁘게 경고 창을 띄워라.
