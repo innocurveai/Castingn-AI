@@ -29,7 +29,7 @@ Castingn-AI/9.소싱문서자동화/
 ```
 
 ## 환경 변수
-- .env 파일 위치: AI-Education/.env
+- .env 파일 위치: Castingn-AI/.env
 - OPENAI_API_KEY 필수
 - load_dotenv()로 절대경로 기준 로드
 

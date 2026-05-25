@@ -40,7 +40,7 @@ Castingn-AI/11.구매데이터분석기/
 ```
 
 ## 환경 변수
-- .env 위치: AI-Education/.env
+- .env 위치: Castingn-AI/.env
 - OPENAI_API_KEY 필수
 
 ---

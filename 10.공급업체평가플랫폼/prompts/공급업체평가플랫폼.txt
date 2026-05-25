@@ -34,7 +34,7 @@ Castingn-AI/10.공급업체평가플랫폼/
 ```
 
 ## 환경 변수
-- .env 위치: AI-Education/.env
+- .env 위치: Castingn-AI/.env
 - OPENAI_API_KEY 필수
 
 ---
