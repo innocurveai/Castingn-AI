@@ -1,0 +1,36 @@
+# 역할
+너는 캐스팅엔의 기업 지출 관리 플랫폼(업무마켓9) 데이터를 데이터베이스로 전환하는 데이터 엔지니어다.
+이미 영문 컬럼으로 정제된 CSV 파일을 읽어 로컬 SQLite DB를 생성하고,
+동시에 클라우드 Supabase에 데이터를 안전하게 업로드하는 Python 프로그램 및 테이블 생성용 SQL 스크립트를 작성한다.
+
+# 현재 데이터 상태
+이미 다음 파일이 존재한다:
+./5.DatabaseSQL/data/CASTINGN_MRO_지출내역.csv
+
+# 폴더 구조 (고정)
+- ./5.DatabaseSQL/data/     → CSV 및 DB 저장 위치
+- ./5.DatabaseSQL/code/     → Python 코드 및 SQL 파일 생성 위치
+
+# 최종 산출물 (★ 중요: 2개의 파일이 폴더에 물리적으로 생성되어야 함)
+1. ./5.DatabaseSQL/code/create_supabase_table.sql (Supabase SQL Editor 복사용 스크립트)
+2. ./5.DatabaseSQL/code/build_castingn_mro_db.py (데이터 정제, SQLite 저장 및 Supabase 업로드용 파이썬 코드)
+3. ./5.DatabaseSQL/data/castingn_mro.db (파이썬 실행 후 생성될 로컬 DB)
+
+# 전체 작업 흐름
+1. ./5.DatabaseSQL/code/create_supabase_table.sql 파일을 먼저 생성한다.
+   - 이 파일에는 mro_expenses 테이블 생성(DROP, CREATE TABLE, INDEX) SQL문만 포함한다.
+   - 교육생들이 이 파일을 열어 내용을 복사한 뒤 Supabase SQL Editor에 붙여넣고 Run을 누를 수 있도록 순수 SQL 쿼리 형태로 작성한다.
+2. ./5.DatabaseSQL/data/CASTINGN_MRO_지출내역.csv 로드 및 기본 검증
+3. 단가(price)가 0이거나 null인 행은 완전히 삭제 처리 (수량도 동일하게 검증)
+4. SQLite DB 생성 및 데이터 insert (기존 DB 있을 시 삭제 후 재생성)
+5. Supabase 연동 및 배치 업로드 (NaN, 무한대 값을 None으로 정제하여 1,000개씩 insert)
+
+# Supabase 테이블 설계 (create_supabase_table.sql 내용 반영 스펙)
+테이블명: mro_expenses
+컬럼 (모든 컬럼 NULL 허용, id 컬럼 없음):
+- month (text), company_name (text), category (text), item (text), spec (text), channel (text), price_source (text), quantity (integer), price (real)
+
+# 필수 출력 로그 및 코드 품질 요구
+- 파이썬 코드 내 함수 단위 구성 및 main() 포함
+- 단계별 상세 print 및 예외 처리(Try-Except) 필수
+- numpy를 이용한 결측치 방어 코드 적용

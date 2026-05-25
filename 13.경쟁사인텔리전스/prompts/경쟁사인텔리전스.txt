@@ -1,0 +1,347 @@
+# 캐스팅엔 경쟁사 인텔리전스 대시보드
+
+## 역할
+너는 캐스팅엔 기획·마케팅팀을 위한 경쟁사 인텔리전스 Streamlit 앱을 만드는 풀스택 개발자다.
+BSM(Business Spend Management) 시장의 경쟁사 동향, 투자 뉴스, 신규 기능 출시 정보를
+자동으로 수집·분석하여 주간 인텔리전스 리포트를 생성한다.
+2027 KOSDAQ IPO를 앞둔 캐스팅엔의 시장 포지셔닝 자료로 활용한다.
+
+## 앱 개요
+- 단일 페이지, 사이드바 설정 + 메인 대시보드 구조
+- 파일명: app.py
+- 실행 위치: CastingN/13.경쟁사인텔리전스/code/
+
+## 기술 스택
+- streamlit
+- openai (GPT-4o-mini, web_search tool 사용)
+- plotly
+- python-docx
+- python-dotenv
+- requests (검색 API 직접 호출)
+
+## 프로젝트 구조
+```
+Castingn-AI/13.경쟁사인텔리전스/
+├── code/
+│   └── app.py
+├── prompts/
+│   └── 경쟁사인텔리전스.txt
+└── data/
+    └── 경쟁사_기본정보.json
+```
+
+## 환경 변수
+- .env 위치: AI-Education/.env
+- OPENAI_API_KEY 필수
+
+---
+
+# 캐스팅엔 경쟁사 정보 (앱 내 하드코딩)
+
+```python
+COMPETITORS = {
+    "오퍼스원": {
+        "분류": "직접경쟁",
+        "설명": "국내 BSM/간접구매 플랫폼",
+        "웹사이트": "opusone.co.kr",
+        "검색키워드": ["오퍼스원 구매관리", "오퍼스원 투자", "오퍼스원 신기능"]
+    },
+    "이카운트": {
+        "분류": "간접경쟁",
+        "설명": "ERP 기반 구매 모듈 제공",
+        "웹사이트": "ecount.com",
+        "검색키워드": ["이카운트 ERP 구매", "이카운트 업데이트", "이카운트 기업고객"]
+    },
+    "구매119": {
+        "분류": "직접경쟁",
+        "설명": "기업 간접구매 마켓플레이스",
+        "웹사이트": "guma119.com",
+        "검색키워드": ["구매119 기업구매", "구매119 파트너", "구매119 서비스"]
+    },
+    "딜사이트": {
+        "분류": "간접경쟁",
+        "설명": "기업 구매 B2B 커머스",
+        "웹사이트": "dealsite.co.kr",
+        "검색키워드": ["딜사이트 기업구매", "딜사이트 신규"]
+    },
+    "코파이럿(Coupa)": {
+        "분류": "글로벌경쟁",
+        "설명": "글로벌 BSM 1위 (Coupa Software)",
+        "웹사이트": "coupa.com",
+        "검색키워드": ["Coupa Korea", "Coupa BSM 한국", "코파 기업도입"]
+    },
+    "SAP Ariba": {
+        "분류": "글로벌경쟁",
+        "설명": "SAP 구매 솔루션",
+        "웹사이트": "sap.com/ariba",
+        "검색키워드": ["SAP Ariba 한국", "Ariba 중소기업", "Ariba 가격"]
+    }
+}
+
+BSM_MARKET_KEYWORDS = [
+    "BSM 시장 한국",
+    "기업 간접구매 자동화",
+    "구매관리 SaaS 투자",
+    "B2B 구매 플랫폼 트렌드",
+    "간접구매 AI 자동화",
+    "KOSPI 구매관리 상장"
+]
+```
+
+---
+
+# UI 레이아웃
+
+## 사이드바
+```
+[캐스팅엔 로고/텍스트]
+──────────────────────
+📊 분석 설정
+
+수집 기간
+● 최근 1주일
+○ 최근 1개월
+○ 최근 3개월
+
+모니터링 대상
+☑ 오퍼스원
+☑ 이카운트
+☑ 구매119
+☑ 딜사이트
+☑ Coupa (글로벌)
+☑ SAP Ariba (글로벌)
+
+분석 초점 (multiselect)
+☑ 신제품/기능 출시
+☑ 투자/펀딩 소식
+☑ 고객사 확보 사례
+☑ 가격 정책 변화
+☑ 채용 동향 (성장 신호)
+
+[🔍 인텔리전스 수집 시작] 버튼
+[📄 주간 리포트 생성] 버튼
+```
+
+## 메인 대시보드 (4섹션)
+
+### 섹션 1: 시장 요약 (상단)
+- 마지막 수집 일시
+- 총 수집 뉴스/정보 건수
+- 주요 이슈 3줄 요약 (인텔리전스 수집 후 자동 업데이트)
+
+### 섹션 2: 경쟁사별 현황 카드
+- 경쟁사당 카드 1개 (3열 배치)
+- 카드 내용: 경쟁사명 / 분류 / 최근 주요 동향 / 위협 레벨 (🔴🟡🟢)
+
+### 섹션 3: 상세 분석 탭
+```python
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📰 뉴스 피드",
+    "⚔️ 경쟁 포지셔닝",
+    "📈 시장 트렌드",
+    "🎯 캐스팅엔 시사점"
+])
+```
+
+### 섹션 4: 리포트 다운로드
+- [Word 주간 리포트 다운로드] 버튼
+
+---
+
+# 수집 및 분석 로직
+
+## GPT web_search 활용
+```python
+def collect_intelligence(competitors, keywords, period):
+    """
+    GPT-4o의 web_search 도구를 활용해 경쟁사 정보 수집
+    """
+    client = openai.OpenAI()
+
+    collected = []
+
+    for competitor, info in competitors.items():
+        for keyword in info['검색키워드']:
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                tools=[{"type": "web_search_preview"}],
+                messages=[{
+                    "role": "user",
+                    "content": f"""
+                    최근 {period} 동안 다음 키워드로 검색하여 중요한 뉴스나 정보를 수집해주세요:
+                    키워드: {keyword}
+
+                    다음 JSON으로 응답:
+                    {{
+                      "검색키워드": "{keyword}",
+                      "경쟁사": "{competitor}",
+                      "수집결과": [
+                        {{
+                          "제목": "",
+                          "날짜": "",
+                          "출처": "",
+                          "요약": "",
+                          "중요도": "HIGH/MEDIUM/LOW",
+                          "카테고리": "신제품/투자/고객사/가격/채용/기타"
+                        }}
+                      ]
+                    }}
+                    결과가 없으면 수집결과를 빈 배열로 응답.
+                    """
+                }]
+            )
+            # 응답 파싱 및 collected에 추가
+
+    return collected
+```
+
+## 경쟁 포지셔닝 분석
+```python
+def analyze_positioning(collected_data):
+    """
+    수집된 정보 기반 캐스팅엔 vs 경쟁사 포지셔닝 분석
+    """
+    prompt = f"""
+    당신은 B2B SaaS 시장 분석 전문가입니다.
+    캐스팅엔은 국내 BSM(Business Spend Management) 플랫폼으로 KOSDAQ IPO를 준비 중입니다.
+    (WorkMarket9: 시장형 BSM, ZENO: AI-Native 지출OS, 누적투자 230억, 100개+ 기업 고객)
+
+    수집된 경쟁사 정보:
+    {json.dumps(collected_data, ensure_ascii=False, indent=2)}
+
+    다음 JSON으로 분석하세요:
+    {{
+      "시장_요약": "",
+      "경쟁사별_위협도": {{
+        "경쟁사명": {{
+          "위협레벨": "HIGH/MEDIUM/LOW",
+          "주요_동향": "",
+          "캐스팅엔_차별점": ""
+        }}
+      }},
+      "캐스팅엔_강점": [],
+      "캐스팅엔_위협": [],
+      "전략_시사점": [],
+      "IPO_관련_시장_상황": "",
+      "즉시_대응_필요_항목": []
+    }}
+    """
+    # GPT 호출 및 파싱
+```
+
+## 시장 트렌드 분석
+```python
+def analyze_market_trends(bsm_keywords, period):
+    """
+    BSM 시장 전반 트렌드 수집
+    """
+    # BSM_MARKET_KEYWORDS로 시장 전체 트렌드 파악
+    # AI 자동화, 투자 트렌드, 규제 변화 등
+```
+
+---
+
+# 탭별 출력 UI
+
+## 탭1: 📰 뉴스 피드
+- 수집된 전체 뉴스 목록
+- 필터: 경쟁사 / 카테고리 / 중요도
+- 각 뉴스: 제목 / 날짜 / 출처 / 요약 / 중요도 배지
+- 중요도 HIGH는 빨간 테두리 카드
+
+## 탭2: ⚔️ 경쟁 포지셔닝
+- 위협도 레이더 차트 (plotly, 경쟁사별 점수)
+- 경쟁사별 상세 분석 카드
+  - 위협 레벨 / 주요 동향 / 캐스팅엔 차별점
+- 포지셔닝 맵 (2x2 매트릭스: 시장집중도 vs AI수준 축)
+
+## 탭3: 📈 시장 트렌드
+- BSM 시장 키워드 트렌드 바차트
+- 주요 트렌드 서술 (AI 자동화, 글로벌 확장, 투자 동향)
+- IPO 관련 시장 환경 분석
+
+## 탭4: 🎯 캐스팅엔 시사점
+- 캐스팅엔 강점 (그린 체크리스트)
+- 위협 요인 (레드 경고리스트)
+- 즉시 대응 필요 항목 (우선순위 순)
+- 전략 시사점 서술
+
+---
+
+# 주간 리포트 Word 생성
+
+```python
+def generate_weekly_report(analysis_result, collected_news):
+    """
+    python-docx로 주간 인텔리전스 리포트 생성
+    """
+    doc = Document()
+
+    # 표지
+    doc.add_heading("캐스팅엔 경쟁사 인텔리전스 주간 리포트", 0)
+    doc.add_paragraph(f"작성일: {datetime.now().strftime('%Y년 %m월 %d일')}")
+    doc.add_paragraph("작성: 캐스팅엔 기획팀")
+
+    # 1. 시장 요약
+    # 2. 경쟁사별 동향
+    # 3. 즉시 대응 필요 항목
+    # 4. 전략 시사점
+    # 5. 수집 뉴스 전문
+
+    # 파일명: f"캐스팅엔_경쟁사인텔리전스_{오늘날짜}.docx"
+```
+
+---
+
+# 코드 요구사항
+
+## 세션 상태
+```python
+st.session_state.get("collected_intel")    # 수집 결과
+st.session_state.get("analysis_result")   # 분석 결과
+st.session_state.get("last_updated")      # 마지막 수집 시각
+```
+
+## 처리 중 UX
+- 경쟁사별로 수집 진행 상황 Progress Bar
+- "오퍼스원 수집 중... (1/6)"
+- 수집 완료 후 자동으로 대시보드 업데이트
+
+## UI 스타일
+- 페이지 제목: "캐스팅엔 경쟁사 인텔리전스"
+- 페이지 아이콘: 🔍
+- 레이아웃: wide
+- 다크 계열 대시보드 느낌 (CSS로 배경색 #0F2035)
+- 캐스팅엔 오렌지 (#FF6B35) 강조 포인트
+
+## 코드 품질
+- collect_intelligence, analyze_positioning, analyze_market_trends, generate_weekly_report 함수 분리
+- main() 포함
+- API 호출 실패 시 graceful 처리 (수집 실패한 경쟁사만 건너뜀)
+- 수집 결과 session_state에 캐싱 (재수집 없이 분석 탭 전환 가능)
+
+## 필요 라이브러리 (requirements.txt)
+```
+streamlit
+openai
+plotly
+python-docx
+python-dotenv
+requests
+```
+
+## 실행 방법
+```bash
+cd Castingn-AI/13.경쟁사인텔리전스/code
+streamlit run app.py
+```
+
+## 최종 목표
+매주 월요일 아침 기획팀원이 버튼 하나로:
+- BSM 시장 6개 경쟁사의 지난 주 동향 자동 수집
+- 캐스팅엔 대비 위협도 자동 분석
+- IPO 시장 환경 파악
+- 임원 보고용 주간 인텔리전스 Word 리포트 완성
+
+2027 KOSDAQ IPO 준비에서 "우리가 왜 지금 1등이냐"를
+데이터로 뒷받침하는 도구.

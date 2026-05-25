@@ -1,0 +1,51 @@
+# Environment / secrets
+.env
+.env.*
+!.env-sample
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+.python-version
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+*.exe
+*.spec
+
+# Logs
+logs/
+*.log
+
+# Generated outputs (Streamlit apps, reports, charts)
+output/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE / editor
+.cursor/
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Local DB (5.DatabaseSQL 실습에서 생성)
+**/castingn_mro.db
+
+# Lint / type check caches
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/

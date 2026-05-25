@@ -1,0 +1,50 @@
+7. 멀티유저/멀티세션/저장기능 챗봇
+
+# 목적
+- Supabase를 활용해서 멀티유저/멀티세션/저장이 가능한 RAG 앱을 만듭니다.
+- 기존 `multiref.py`를 멀티유저 버전으로 확장합니다.
+- **Supabase Authentication은 사용하지 않고**, DB의 `user` 테이블 기반으로 통일합니다.
+
+# 파일명
+- `multiusers.py`
+
+# 핵심 아키텍처(고정)
+- 사용자 관리는 반드시 `user` 테이블에서 직접 관리합니다. (회원가입/로그인 로직을 앱에서 처리)
+- `auth.users` 및 Supabase Auth 회원가입/로그인/이메일 인증 흐름은 사용하지 않습니다.
+- `멀티세션 ref`에서 만든 `chat_sessions`, `chat_messages` 테이블을 그대로 활용하되, 두 테이블에 `user_id` 컬럼(FK)을 추가해서 사용자별 데이터 분리를 보장합니다.
+- 모든 조회/저장/삭제는 항상 `user_id` 조건으로 필터링합니다.
+
+# 상세 기능
+- Supabase 기반 사용자 로그인/회원가입 기능 추가 (`login_id`, `password`)
+  - 비밀번호는 평문 저장 금지, 해시 저장 필수
+  - 로그인 성공 시 해당 사용자 기준으로만 세션/메시지/벡터 데이터 접근
+- Supabase 기반 세션 저장/로드/삭제 기능 추가
+- 세션 관리 버튼/동작은 `multi-session-ref.py`와 동일한 UX를 유지
+
+## 화면 UI 및 답변 스타일
+- UI와 답변 스타일(display, color 등)은 `ref.py`, `multiref.py`를 참고합니다.
+- 챗봇 이름: `"캐스팅엔 RAG 챗봇"`
+
+# DB 스키마 변경 요구사항 (중요)
+- 아래 테이블은 `user_id` 컬럼을 추가/반영합니다.
+  - `chat_sessions.user_id` (NOT NULL, `user.id` FK)
+  - `chat_messages.user_id` (NOT NULL, `user.id` FK)
+  - 필요 시 인덱스 추가: `(user_id)`, `(user_id, session_id)`
+- 기존 데이터 접근 로직도 모두 `user_id` 기준으로 수정합니다.
+
+# 환경변수/시크릿 로딩 방식 (고정)
+- 로컬 실행 시: `.env`를 로드해서 Supabase/OpenAI 키를 읽습니다.
+- Streamlit Cloud 배포 시: `st.secrets`에서 키를 읽습니다.
+- 권장 우선순위:
+  1) `st.secrets`에 값이 있으면 사용
+  2) 없으면 `.env`/`os.getenv` 사용
+- 지원 키:
+  - `SUPABASE_URL`
+  - `SUPABASE_ANON_KEY`
+  - `OPENAI_API_KEY`
+- 키 누락 시 예외로 즉시 종료하지 말고, 사용자에게 누락된 키를 안내합니다.
+
+# 기술 사항
+- 테스트 완료 후 GitHub repository에 업로드 예정
+- 필요한 의존성을 반영한 `requirements.txt` 작성
+- Streamlit Cloud 배포를 고려한 코드로 작성
