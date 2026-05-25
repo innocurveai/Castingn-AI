@@ -28,6 +28,8 @@ dependencies = [
     # Data / visualization
     "pandas>=2.2.2,<3",
     "numpy>=2.0,<3",
+    "matplotlib>=3.8,<4",
+    "seaborn>=0.13,<0.14",
     "plotly>=5.18.0,<6",
     # Documents / PDF
     "python-docx>=1.1.0,<2",
